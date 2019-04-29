@@ -18,7 +18,7 @@ public class Pawn {
     private int x;
     private int y;
 
-    private final Integer radius = 50;
+    public static final Integer radius = 50;
 
     private Paint paint;
 
@@ -46,5 +46,15 @@ public class Pawn {
     public Paint getPaint()
     {
         return paint;
+    }
+
+    public void markSelected()
+    {
+        paint.setColor(Color.RED);
+    }
+
+    public void unmarkSelected()
+    {
+        paint.setColor(pawnColor == PawnColor.Black ? Color.parseColor("#0000ff") : Color.parseColor("#ffff00"));
     }
 }

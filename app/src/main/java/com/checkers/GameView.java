@@ -8,6 +8,8 @@ import android.util.AttributeSet;
 import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 public final class GameView extends View {
 
@@ -18,6 +20,13 @@ public final class GameView extends View {
     private Paint blackPaint;
 
     private Pawn[][] pawns = new Pawn[8][8];
+
+    Pair<Integer, Integer> selectedPawnCoords;
+
+    private boolean playerWhiteTurn = true;
+
+    private int playerWhitePoints = 0;
+    private int playerBlackPoints = 0;
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -31,11 +40,12 @@ public final class GameView extends View {
         blackPaint.setStyle(Paint.Style.FILL);
 
         resetGame();
-        movePawn(new Pair<Integer, Integer>(0,0), new Pair<Integer, Integer>(2,0));
+        movePawn(new Pair<>(0, 0), new Pair<>(2, 0));
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
+
         drawBoard(canvas);
         drawPawns(canvas);
     }
@@ -46,21 +56,28 @@ public final class GameView extends View {
             int x = (int) ((event.getX() - offset) / fieldSize);
             int y = (int) ((event.getY() - offset) / fieldSize);
 
-            invalidate();
-
-//            if (win != ' ') {
-//                activity.gameEnded(win);
-//            } else {
-//                // computer plays ...
-//                win = gameEngine.computer();
-//                invalidate();
-//
-//                if (win != ' ') {
-//                    activity.gameEnded(win);
-//                }
-//            }
+            if(selectedPawnCoords == null)
+            {
+                if(coordsCorrect(new Pair<>(x, y)))
+                {
+                    if(pawns[x][y] != null)
+                    {
+                        pawns[x][y].markSelected();
+                        selectedPawnCoords = new Pair<>(x, y);
+                    }
+                }
+            }
+            else
+            {
+                if(coordsCorrect(new Pair<>(x, y)))
+                {
+                    movePawn(selectedPawnCoords, new Pair<>(x, y));
+                    pawns[x][y].unmarkSelected();
+                    selectedPawnCoords = null;
+                }
+            }
         }
-
+        invalidate();
         return super.onTouchEvent(event);
     }
 
@@ -74,7 +91,7 @@ public final class GameView extends View {
                 {
                     int x = (offset + fieldSize/2)+ fieldSize*pawns[i][j].getPosition().first;
                     int y = (offset + fieldSize/2)+ fieldSize*pawns[i][j].getPosition().second;
-                    canvas.drawCircle(x,y,50, pawns[i][j].getPaint() );
+                    canvas.drawCircle(x,y,Pawn.radius, pawns[i][j].getPaint() );
                 }
             }
         }
@@ -107,6 +124,8 @@ public final class GameView extends View {
 
     public void resetGame()
     {
+       pawns = new Pawn[8][8];
+
         for(int i=0;i<8;i+=2)
         {
             pawns[i][0] = new Pawn(new Pair<>(i,0), Pawn.PawnColor.White);
@@ -128,9 +147,39 @@ public final class GameView extends View {
 
     public void movePawn(Pair<Integer, Integer> currentPos, Pair<Integer,Integer> nextPos)
     {
+        if(currentPos.equals(nextPos)) return;
+        if(!coordsCorrect(currentPos) || !coordsCorrect(nextPos)) return;
+
         pawns[nextPos.first][nextPos.second] = pawns[currentPos.first][currentPos.second];
         pawns[currentPos.first][currentPos.second] = null;
         pawns[nextPos.first][nextPos.second].setPosition(nextPos);
     }
 
+    private boolean coordsCorrect(Pair<Integer, Integer> coords) {
+        boolean gridCorrect = false;
+        if(coords.first % 2 == 0 && coords.second % 2 == 0) gridCorrect = true;
+        if(coords.first % 2 == 1 && coords.second % 2 == 1) gridCorrect = true;
+        return coords.first >= 0 && coords.first < 8 && coords.second >= 0 && coords.second < 8 && gridCorrect;
+    }
+
+    public void makePawnDie(Pair<Integer, Integer> coords)
+    {
+        if(coordsCorrect(coords))
+        {
+            if(playerWhiteTurn)
+            {
+                playerWhitePoints++;
+            }
+            else
+            {
+                playerBlackPoints++;
+            }
+            pawns[coords.first][coords.second] = null;
+        }
+    }
+
+    public void changePlayer()
+    {
+        playerWhiteTurn = !playerWhiteTurn;
+    }
 }
