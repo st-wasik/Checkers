@@ -29,7 +29,7 @@ public class Pawn {
         this.pawnColor = color;
 
         this.paint = new Paint();
-        paint.setColor(pawnColor == PawnColor.Black ? Color.BLACK : Color.WHITE);
+        paint.setColor(pawnColor == PawnColor.Black ? Color.parseColor("#0000ff") : Color.parseColor("#ffff00"));
     }
 
     public void setPosition(Pair<Integer, Integer> position)
@@ -43,9 +43,8 @@ public class Pawn {
         return new Pair<>(x,y);
     }
 
-    void draw(Canvas canvas)
+    public Paint getPaint()
     {
-        canvas.drawCircle(x,y,radius, paint);
+        return paint;
     }
-
 }
