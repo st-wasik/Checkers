@@ -1,5 +1,6 @@
 package com.checkers;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,14 +11,16 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public final class GameView extends View {
 
     public static final int fieldSize = 130;
     public static final int offset = 20;
 
-    private Paint whitePaint;
-    private Paint blackPaint;
+    private Board board = new Board();
+
+    private Activity activity;
 
     private Pawn[][] pawns = new Pawn[8][8];
 
@@ -30,17 +33,9 @@ public final class GameView extends View {
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        whitePaint = new Paint();
-        blackPaint = new Paint();
-
-        whitePaint.setColor(Color.WHITE);
-        blackPaint.setColor(Color.BLACK);
-
-        whitePaint.setStyle(Paint.Style.FILL);
-        blackPaint.setStyle(Paint.Style.FILL);
 
         resetGame();
-        movePawn(new Pair<>(0, 0), new Pair<>(2, 0));
+        board.unmarkAll();
     }
 
     @Override
@@ -56,29 +51,241 @@ public final class GameView extends View {
             int x = (int) ((event.getX() - offset) / fieldSize);
             int y = (int) ((event.getY() - offset) / fieldSize);
 
-            if(selectedPawnCoords == null)
+            if(selectedPawnCoords == null) {
+                updateSelection(x, y);
+                calculatePossibleWays(false);
+            }
+            else
             {
-                if(coordsCorrect(new Pair<>(x, y)))
+                Pair<Integer,Integer> prev = selectedPawnCoords;
+                Pair<Integer,Integer> temp = new Pair<>(x,y);
+                updatePawn(x,y);
+
+                if(prev.equals(new Pair<>(x, y)))
                 {
-                    if(pawns[x][y] != null)
+                    pawns[selectedPawnCoords.first][selectedPawnCoords.second].unmarkSelected();
+                    selectedPawnCoords = null;
+                    board.unmarkAll();
+                }
+                else
+                {
+                    board.unmarkAll();
+
+                    if(canHitNextPawn() && ((Math.abs(prev.first-temp.first)) > 1 || (Math.abs(prev.second-temp.second)) > 1))
+                    {
+                        calculatePossibleWays(true);
+                    }
+                    else
+                    {
+                        changePlayer();
+                        pawns[selectedPawnCoords.first][selectedPawnCoords.second].unmarkSelected();
+                        selectedPawnCoords = null;
+                        board.unmarkAll();
+                    }
+                }
+            }
+
+
+        }
+        invalidate();
+        return super.onTouchEvent(event);
+    }
+
+    public void updateSelection(int x, int y)
+    {
+            if(coordsCorrect(new Pair<>(x, y)))
+            {
+                if(pawns[x][y] != null)
+                {
+                    if(pawns[x][y].getPawnColor().equals(playerWhiteTurn ? Pawn.PawnColor.White : Pawn.PawnColor.Black))
                     {
                         pawns[x][y].markSelected();
                         selectedPawnCoords = new Pair<>(x, y);
                     }
                 }
             }
-            else
+    }
+
+    public void updatePawn(int x, int y)
+    {
+        Pair<Integer,Integer> temp = new Pair<>(x, y);
+        Pair<Integer,Integer> prev = selectedPawnCoords;
+
+            if(coordsCorrect(temp))
             {
-                if(coordsCorrect(new Pair<>(x, y)))
+                if(selectedPawnCoords.equals(temp)) {
+                    pawns[x][y].unmarkSelected();
+                    selectedPawnCoords = temp;
+                    pawns[temp.first][temp.second].markSelected();
+                    board.unmarkAll();
+                }
+                else if(board.isMarked(temp))
                 {
                     movePawn(selectedPawnCoords, new Pair<>(x, y));
                     pawns[x][y].unmarkSelected();
-                    selectedPawnCoords = null;
+                    selectedPawnCoords = temp;
+                    pawns[temp.first][temp.second].markSelected();
+                    board.unmarkAll();
+
+                    if(Math.abs(temp.first - prev.first) > 1 || Math.abs(temp.second - prev.second) > 1)
+                    {
+                        makePawnDie(new Pair<>((temp.first + prev.first)/2, (temp.second + prev.second)/2));
+                    }
+
+                }
+            }
+    }
+
+    public void calculatePossibleWays(boolean hitOnly)
+    {
+        if(selectedPawnCoords != null)
+        {
+            Pair<Integer,Integer> temp;
+
+            if(!hitOnly) {
+                temp = new Pair<>(selectedPawnCoords.first - 1, selectedPawnCoords.second - 1);
+                if (coordsCorrect(temp)) {
+                    if (pawns[temp.first][temp.second] == null) {
+                        board.markField(temp.first, temp.second);
+                    }
+                }
+
+                temp = new Pair<>(selectedPawnCoords.first - 1, selectedPawnCoords.second + 1);
+                if (coordsCorrect(temp)) {
+                    if (pawns[temp.first][temp.second] == null) {
+                        board.markField(temp.first, temp.second);
+                    }
+                }
+
+                temp = new Pair<>(selectedPawnCoords.first + 1, selectedPawnCoords.second - 1);
+                if (coordsCorrect(temp)) {
+                    if (pawns[temp.first][temp.second] == null) {
+                        board.markField(temp.first, temp.second);
+                    }
+                }
+
+                temp = new Pair<>(selectedPawnCoords.first + 1, selectedPawnCoords.second + 1);
+                if (coordsCorrect(temp)) {
+                    if (pawns[temp.first][temp.second] == null) {
+                        board.markField(temp.first, temp.second);
+                    }
+                }
+            }
+
+            Pair<Integer,Integer> temp2;
+            temp2 = new Pair<>(selectedPawnCoords.first - 2, selectedPawnCoords.second - 2);
+            temp = new Pair<>(selectedPawnCoords.first - 1, selectedPawnCoords.second - 1);
+            if (coordsCorrect(temp) && coordsCorrect(temp2)) {
+                if (pawns[temp.first][temp.second] != null) {
+                    if (pawns[temp.first][temp.second].getPawnColor().equals(playerWhiteTurn ? Pawn.PawnColor.Black : Pawn.PawnColor.White) &&
+                            pawns[temp2.first][temp2.second] == null) {
+                        board.markField(temp2.first, temp2.second);
+                    }
+                }
+            }
+
+            temp2 = new Pair<>(selectedPawnCoords.first - 2, selectedPawnCoords.second + 2);
+            temp = new Pair<>(selectedPawnCoords.first - 1, selectedPawnCoords.second + 1);
+            if (coordsCorrect(temp) && coordsCorrect(temp2)) {
+                if (pawns[temp.first][temp.second] != null) {
+                    if (pawns[temp.first][temp.second].getPawnColor().equals(playerWhiteTurn ? Pawn.PawnColor.Black : Pawn.PawnColor.White) &&
+                            pawns[temp2.first][temp2.second] == null) {
+                        board.markField(temp2.first, temp2.second);
+                    }
+                }
+            }
+
+            temp2 = new Pair<>(selectedPawnCoords.first + 2, selectedPawnCoords.second + 2);
+            temp = new Pair<>(selectedPawnCoords.first + 1, selectedPawnCoords.second + 1);
+            if (coordsCorrect(temp) && coordsCorrect(temp2)) {
+                if (pawns[temp.first][temp.second] != null) {
+                    if (pawns[temp.first][temp.second].getPawnColor().equals(playerWhiteTurn ? Pawn.PawnColor.Black : Pawn.PawnColor.White) &&
+                            pawns[temp2.first][temp2.second] == null) {
+                        board.markField(temp2.first, temp2.second);
+                    }
+                }
+            }
+            temp2 = new Pair<>(selectedPawnCoords.first + 2, selectedPawnCoords.second + 2);
+            temp = new Pair<>(selectedPawnCoords.first + 1, selectedPawnCoords.second + 1);
+            if (coordsCorrect(temp) && coordsCorrect(temp2)) {
+                if (pawns[temp.first][temp.second] != null) {
+                    if (pawns[temp.first][temp.second].getPawnColor().equals(playerWhiteTurn ? Pawn.PawnColor.Black : Pawn.PawnColor.White) &&
+                            pawns[temp2.first][temp2.second] == null) {
+                        board.markField(temp2.first, temp2.second);
+                    }
+                }
+            }
+
+
+
+        }
+    }
+
+    public boolean canHitNextPawn()
+    {
+        Pair<Integer,Integer> temp;
+        Pair<Integer,Integer> temp2;
+
+        temp2 = new Pair<>(selectedPawnCoords.first - 2, selectedPawnCoords.second - 2);
+        temp = new Pair<>(selectedPawnCoords.first - 1, selectedPawnCoords.second - 1);
+        if (coordsCorrect(temp) && coordsCorrect(temp2)) {
+            if (pawns[temp.first][temp.second] != null) {
+                if (pawns[temp.first][temp.second].getPawnColor().equals(playerWhiteTurn ? Pawn.PawnColor.Black : Pawn.PawnColor.White) &&
+                        pawns[temp2.first][temp2.second] == null) {
+                    return true;
                 }
             }
         }
-        invalidate();
-        return super.onTouchEvent(event);
+
+        temp2 = new Pair<>(selectedPawnCoords.first - 2, selectedPawnCoords.second + 2);
+        temp = new Pair<>(selectedPawnCoords.first - 1, selectedPawnCoords.second + 1);
+        if (coordsCorrect(temp) && coordsCorrect(temp2)) {
+            if (pawns[temp.first][temp.second] != null) {
+                if (pawns[temp.first][temp.second].getPawnColor().equals(playerWhiteTurn ? Pawn.PawnColor.Black : Pawn.PawnColor.White) &&
+                        pawns[temp2.first][temp2.second] == null) {
+                    return true;
+                }
+            }
+        }
+
+        temp2 = new Pair<>(selectedPawnCoords.first + 2, selectedPawnCoords.second + 2);
+        temp = new Pair<>(selectedPawnCoords.first + 1, selectedPawnCoords.second + 1);
+        if (coordsCorrect(temp) && coordsCorrect(temp2)) {
+            if (pawns[temp.first][temp.second] != null) {
+                if (pawns[temp.first][temp.second].getPawnColor().equals(playerWhiteTurn ? Pawn.PawnColor.Black : Pawn.PawnColor.White) &&
+                        pawns[temp2.first][temp2.second] == null) {
+                    return true;
+                }
+            }
+        }
+        temp2 = new Pair<>(selectedPawnCoords.first + 2, selectedPawnCoords.second + 2);
+        temp = new Pair<>(selectedPawnCoords.first + 1, selectedPawnCoords.second + 1);
+        if (coordsCorrect(temp) && coordsCorrect(temp2)) {
+            if (pawns[temp.first][temp.second] != null) {
+                if (pawns[temp.first][temp.second].getPawnColor().equals(playerWhiteTurn ? Pawn.PawnColor.Black : Pawn.PawnColor.White) &&
+                        pawns[temp2.first][temp2.second] == null) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public void makePawnDie(Pair<Integer, Integer> coords)
+    {
+        if(coordsCorrect(coords))
+        {
+            if(playerWhiteTurn)
+            {
+                playerWhitePoints++;
+            }
+            else
+            {
+                playerBlackPoints++;
+            }
+            pawns[coords.first][coords.second] = null;
+        }
     }
 
     private void drawPawns(Canvas canvas)
@@ -99,27 +306,7 @@ public final class GameView extends View {
 
     public void drawBoard(Canvas canvas)
     {
-        canvas.drawColor(Color.YELLOW);
-        for(int i=0;i<8;i++)
-        {
-            for(int j=0;j<8;j++)
-            {
-                if(i % 2 == 0)
-                {
-                    if(j % 2 == 0)
-                        canvas.drawRect(offset + fieldSize*i, offset + fieldSize*j,offset + fieldSize*(i+1), offset +fieldSize*(j+1), blackPaint);
-                    else
-                        canvas.drawRect(offset + fieldSize*i, offset + fieldSize*j,offset + fieldSize*(i+1), offset +fieldSize*(j+1), whitePaint);
-                }
-                else
-                {
-                    if(j % 2 == 0)
-                        canvas.drawRect(offset + fieldSize*i, offset + fieldSize*j,offset + fieldSize*(i+1), offset +fieldSize*(j+1), whitePaint);
-                    else
-                        canvas.drawRect(offset + fieldSize*i, offset + fieldSize*j,offset + fieldSize*(i+1), offset +fieldSize*(j+1), blackPaint);
-                }
-            }
-        }
+        board.draw(canvas, fieldSize, offset);
     }
 
     public void resetGame()
@@ -143,6 +330,8 @@ public final class GameView extends View {
         {
             pawns[i+1][7] = new Pawn(new Pair<>(i+1,7), Pawn.PawnColor.Black);
         }
+
+        board.unmarkAll();
     }
 
     public void movePawn(Pair<Integer, Integer> currentPos, Pair<Integer,Integer> nextPos)
@@ -162,24 +351,32 @@ public final class GameView extends View {
         return coords.first >= 0 && coords.first < 8 && coords.second >= 0 && coords.second < 8 && gridCorrect;
     }
 
-    public void makePawnDie(Pair<Integer, Integer> coords)
-    {
-        if(coordsCorrect(coords))
-        {
-            if(playerWhiteTurn)
-            {
-                playerWhitePoints++;
-            }
-            else
-            {
-                playerBlackPoints++;
-            }
-            pawns[coords.first][coords.second] = null;
-        }
-    }
-
     public void changePlayer()
     {
         playerWhiteTurn = !playerWhiteTurn;
+        if(playerWhiteTurn)
+        {
+            TextView turn = findViewById(R.id.current_player);
+            if(turn != null)
+                turn.setText("Player White Turn");
+
+            Toast.makeText(activity, "Player White Turn", Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            TextView turn = findViewById(R.id.current_player);
+            if(turn != null)
+                turn.setText("Player White Turn");
+
+            Toast.makeText(activity, "Player Black Turn", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public Activity getActivity() {
+        return activity;
+    }
+
+    public void setActivity(Activity activity) {
+        this.activity = activity;
     }
 }

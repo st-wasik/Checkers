@@ -18,6 +18,9 @@ public class Pawn {
     private int x;
     private int y;
 
+    static private final int white = Color.parseColor("#e3dac9");;
+    static private final int black = Color.parseColor("#663d00");;
+
     public static final Integer radius = 50;
 
     private Paint paint;
@@ -29,7 +32,7 @@ public class Pawn {
         this.pawnColor = color;
 
         this.paint = new Paint();
-        paint.setColor(pawnColor == PawnColor.Black ? Color.parseColor("#0000ff") : Color.parseColor("#ffff00"));
+        paint.setColor(pawnColor == PawnColor.Black ? black : white);
     }
 
     public void setPosition(Pair<Integer, Integer> position)
@@ -55,6 +58,6 @@ public class Pawn {
 
     public void unmarkSelected()
     {
-        paint.setColor(pawnColor == PawnColor.Black ? Color.parseColor("#0000ff") : Color.parseColor("#ffff00"));
+        paint.setColor(pawnColor == PawnColor.Black ? black : white);
     }
 }
