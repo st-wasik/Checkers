@@ -229,7 +229,7 @@ public final class GameView extends View {
         temp = new Pair<>(selectedPawnCoords.first - 1, selectedPawnCoords.second - 1);
         if (coordsCorrect(temp) && coordsCorrect(temp2)) {
             if (pawns[temp.first][temp.second] != null) {
-                if (pawns[temp.first][temp.second].getPawnColor().equals(playerWhiteTurn ? Pawn.PawnColor.Black : Pawn.PawnColor.White) &&
+                if (pawns[temp.first][temp.second].getPawnColor().equals(opponentColor) &&
                         pawns[temp2.first][temp2.second] == null) {
                     return true;
                 }
@@ -240,18 +240,18 @@ public final class GameView extends View {
         temp = new Pair<>(selectedPawnCoords.first - 1, selectedPawnCoords.second + 1);
         if (coordsCorrect(temp) && coordsCorrect(temp2)) {
             if (pawns[temp.first][temp.second] != null) {
-                if (pawns[temp.first][temp.second].getPawnColor().equals(playerWhiteTurn ? Pawn.PawnColor.Black : Pawn.PawnColor.White) &&
+                if (pawns[temp.first][temp.second].getPawnColor().equals(opponentColor) &&
                         pawns[temp2.first][temp2.second] == null) {
                     return true;
                 }
             }
         }
 
-        temp2 = new Pair<>(selectedPawnCoords.first + 2, selectedPawnCoords.second + 2);
-        temp = new Pair<>(selectedPawnCoords.first + 1, selectedPawnCoords.second + 1);
+        temp2 = new Pair<>(selectedPawnCoords.first + 2, selectedPawnCoords.second - 2);
+        temp = new Pair<>(selectedPawnCoords.first + 1, selectedPawnCoords.second - 1);
         if (coordsCorrect(temp) && coordsCorrect(temp2)) {
             if (pawns[temp.first][temp.second] != null) {
-                if (pawns[temp.first][temp.second].getPawnColor().equals(playerWhiteTurn ? Pawn.PawnColor.Black : Pawn.PawnColor.White) &&
+                if (pawns[temp.first][temp.second].getPawnColor().equals(opponentColor) &&
                         pawns[temp2.first][temp2.second] == null) {
                     return true;
                 }
@@ -261,7 +261,7 @@ public final class GameView extends View {
         temp = new Pair<>(selectedPawnCoords.first + 1, selectedPawnCoords.second + 1);
         if (coordsCorrect(temp) && coordsCorrect(temp2)) {
             if (pawns[temp.first][temp.second] != null) {
-                if (pawns[temp.first][temp.second].getPawnColor().equals(playerWhiteTurn ? Pawn.PawnColor.Black : Pawn.PawnColor.White) &&
+                if (pawns[temp.first][temp.second].getPawnColor().equals(opponentColor) &&
                         pawns[temp2.first][temp2.second] == null) {
                     return true;
                 }
