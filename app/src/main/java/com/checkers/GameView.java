@@ -73,8 +73,6 @@ public final class GameView extends View {
                     updatePawn(x,y);
                 }
             }
-
-
         }
         invalidate();
         return super.onTouchEvent(event);
@@ -132,6 +130,22 @@ public final class GameView extends View {
                         pawns[selectedPawnCoords.first][selectedPawnCoords.second].unmarkSelected();
                         selectedPawnCoords = null;
                         board.unmarkAll();
+
+                        if(playerWhitePoints == 8 || playerBlackPoints == 8)
+                        {
+                            TextView turn = null;
+                            if(activity != null)
+                                turn = activity.findViewById(R.id.current_player);
+                            if (turn != null && playerWhitePoints == 8) {
+                                turn.setText("White's Wins");
+                                Toast.makeText(activity, "White Win", Toast.LENGTH_SHORT).show();
+                            }
+                            else if(turn != null && playerBlackPoints == 8) {
+                                turn.setText("Blacks's Wins");
+                                Toast.makeText(activity, "Blacks Win", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
                     }
 
                 }
@@ -317,7 +331,7 @@ public final class GameView extends View {
         if(activity != null)
             turn = activity.findViewById(R.id.current_player);
         if (turn != null)
-            turn.setText("Player White Turn");
+            turn.setText("White's Turn");
 
         pawns = new Pawn[8][8];
 
@@ -369,7 +383,7 @@ public final class GameView extends View {
 
             TextView turn = activity.findViewById(R.id.current_player);
             if (turn != null)
-                turn.setText("Player Black Turn");
+                turn.setText("Black's Turn");
            // Toast.makeText(activity, "Player Black Turn", Toast.LENGTH_SHORT).show();
         }
         else
@@ -381,7 +395,7 @@ public final class GameView extends View {
 
             TextView turn = activity.findViewById(R.id.current_player);
             if (turn != null)
-                turn.setText("Player White Turn");
+                turn.setText("White's Turn");
           //  Toast.makeText(activity, "Player White Turn", Toast.LENGTH_SHORT).show();
         }
     }
