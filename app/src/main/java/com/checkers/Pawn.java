@@ -14,6 +14,8 @@ public class Pawn {
         White, Black
     }
 
+    public boolean ivDamke = false;
+
     private PawnColor pawnColor;
     private int x;
     private int y;
