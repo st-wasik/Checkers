@@ -101,13 +101,23 @@ public final class GameView extends View {
                 pawns[temp.first][temp.second].markSelected();
                 board.unmarkAll();
 
-//                for(int i = prev.first, j = prev.second; (temp.first - prev.first ? ))
-//                {
-//                    if(!pawns[i][j].getPawnColor().equals(currentPlayerColor))
-//                    {
-//                        killPawn(new Pair<>(i,j);
-//                    }
-//                }
+                for(int i = (temp.first > prev.first ? prev.first + 1 : prev.first -1), j = (temp.second > prev.second ? prev.second + 1 : prev.second - 1) ;
+                    (temp.first > prev.first ? (i < temp.first) : i > temp.first) &&
+                            (temp.second > prev.second ? (j < temp.second) : j > temp.second);
+                )
+                {
+                    if(pawns[i][j] != null)
+                    {
+                        if(!pawns[i][j].getPawnColor().equals(currentPlayerColor))
+                        {
+                            killPawn(new Pair(i,j));
+                        }
+                    }
+
+
+                    if(temp.first > prev.first) i++; else i--;
+                    if(temp.second > prev.second) j++; else j--;
+                }
 
                 if (Math.abs(temp.first - prev.first) > 1 || Math.abs(temp.second - prev.second) > 1) {
                     killPawn(new Pair<>((temp.first + prev.first) / 2, (temp.second + prev.second) / 2));
@@ -178,11 +188,19 @@ public final class GameView extends View {
                         if (pawns[i][j] == null) {
                             board.markField(i, j);
                         }
+                        else
+                        {
+                            if(pawns[i][j].getPawnColor().equals(currentPlayerColor) && i != selectedPawnCoords.first && j != selectedPawnCoords.second) break;
+                        }
                     }
 
                     for (int i = selectedPawnCoords.first, j = selectedPawnCoords.second; i >= 0 && j <= 7; i--, j++) {
                         if (pawns[i][j] == null) {
                             board.markField(i, j);
+                        }
+                        else
+                        {
+                            if(pawns[i][j].getPawnColor().equals(currentPlayerColor) && i != selectedPawnCoords.first && j != selectedPawnCoords.second) break;
                         }
                     }
 
@@ -190,11 +208,19 @@ public final class GameView extends View {
                         if (pawns[i][j] == null) {
                             board.markField(i, j);
                         }
+                        else
+                        {
+                            if(pawns[i][j].getPawnColor().equals(currentPlayerColor) && i != selectedPawnCoords.first && j != selectedPawnCoords.second) break;
+                        }
                     }
 
                     for (int i = selectedPawnCoords.first, j = selectedPawnCoords.second; i >= 0 && j >= 0; i--, j--) {
                         if (pawns[i][j] == null) {
                             board.markField(i, j);
+                        }
+                        else
+                        {
+                            if(pawns[i][j].getPawnColor().equals(currentPlayerColor) && i != selectedPawnCoords.first && j != selectedPawnCoords.second) break;
                         }
                     }
                 }
@@ -327,6 +353,10 @@ public final class GameView extends View {
         playerWhiteTurn = true;
         currentPlayerColor = Pawn.PawnColor.White;
         opponentColor = Pawn.PawnColor.Black;
+
+        playerBlackPoints = 0;
+        playerWhitePoints = 0;
+
         TextView turn = null;
         if (activity != null)
             turn = activity.findViewById(R.id.current_player);
