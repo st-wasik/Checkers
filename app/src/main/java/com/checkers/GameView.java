@@ -131,14 +131,28 @@ public final class GameView extends View {
                     selectedPawnCoords = null;
                     board.unmarkAll();
 
-                    if (playerWhitePoints == 8 || playerBlackPoints == 8) {
+                    int blacks = 0, whites = 0;
+                    for(int i =0;i<8;i++)
+                    {
+                        for(int j=0;j<8;j++)
+                        {
+                            if(pawns[i][j] != null)
+                            {
+                                if(pawns[i][j].getPawnColor().equals(Pawn.PawnColor.Black))blacks++;
+                                else if(pawns[i][j].getPawnColor().equals(Pawn.PawnColor.White)) whites++;
+                            }
+                        }
+                    }
+
+
+                    if (blacks == 0 || whites == 0) {
                         TextView turn = null;
                         if (activity != null)
                             turn = activity.findViewById(R.id.current_player);
-                        if (turn != null && playerWhitePoints == 8) {
+                        if (turn != null && blacks == 0) {
                             turn.setText("White's Wins");
                             Toast.makeText(activity, "White Win", Toast.LENGTH_SHORT).show();
-                        } else if (turn != null && playerBlackPoints == 8) {
+                        } else if (turn != null && whites == 0) {
                             turn.setText("Blacks's Wins");
                             Toast.makeText(activity, "Blacks Win", Toast.LENGTH_SHORT).show();
                         }
